@@ -1,4 +1,6 @@
-﻿using System.Threading.RateLimiting;
+﻿using Microsoft.AspNetCore.RateLimiting;
+using System.Net;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,49 +10,48 @@ var builder = WebApplication.CreateBuilder(args);
     #region NormalLimiter
         
         #region GetConcurrencyLimiter
-        //builder.Services.AddRateLimiter(options =>
-        //{
-        //    // پالیسی زیر باید در کنترلر اضافه شود Concurency
-        //    options.AddConcurrencyLimiter("Concurency", opt =>
-        //    {
-        //        opt.PermitLimit = 1;
-        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        //        opt.QueueLimit = 1;
-        //    });
-        //});
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddConcurrencyLimiter("Concurency", opt =>
+                {
+                    opt.PermitLimit = 1;
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    opt.QueueLimit = 1;
+                });
+            });
         #endregion
         
         
         
         #region FixedWindowLimiter
-        //builder.Services.AddRateLimiter(options =>
-        //{
-        //    options.AddFixedWindowLimiter("FixedWindowLimiter", opt=>
-        //    {
-        //        opt.AutoReplenishment = true;
-        //        opt.PermitLimit = 3;
-        //        opt.QueueLimit = 2;
-        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        //        opt.Window = TimeSpan.FromSeconds(10);
-        //    });
-        //});
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddFixedWindowLimiter("FixedWindowLimiter", opt=>
+                {
+                    opt.AutoReplenishment = true;
+                    opt.PermitLimit = 3;
+                    opt.QueueLimit = 2;
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    opt.Window = TimeSpan.FromSeconds(10);
+                });
+            });
         #endregion
         
         
         
         #region SlidingWindowLimiter 
-        //builder.Services.AddRateLimiter(options =>
-        //{
-        //    options.AddSlidingWindowLimiter("SlidingWindow", opt =>
-        //    {
-        //        opt.Window = TimeSpan.FromSeconds(30);
-        //        opt.SegmentsPerWindow = 3;
-        //        opt.PermitLimit = 3;
-        //        opt.QueueLimit = 2;
-        //        opt.AutoReplenishment = true;
-        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        //    });
-        //});
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddSlidingWindowLimiter("SlidingWindow", opt =>
+                {
+                    opt.Window = TimeSpan.FromSeconds(30);
+                    opt.SegmentsPerWindow = 3;
+                    opt.PermitLimit = 3;
+                    opt.QueueLimit = 2;
+                    opt.AutoReplenishment = true;
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                });
+            });
         #endregion
         
         
@@ -153,43 +154,43 @@ var builder = WebApplication.CreateBuilder(args);
                       });
             });
         });
-        #endregion
+#endregion
 
-    #endregion
+#endregion
 
 #endregion
 
 
 #region GlobalLimiter
-//builder.Services.AddRateLimiter(options =>
-//{
-//options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpcontext =>
-//            RateLimitPartition.GetFixedWindowLimiter(
-//                partitionKey: httpcontext.Request.Headers.Host.ToString(),
-//                factory: partition => new FixedWindowRateLimiterOptions
-//                {
-//                    AutoReplenishment = true,
-//                    PermitLimit = 3,
-//                    Window = TimeSpan.FromMinutes(1)
-//                }
-//            ));
+builder.Services.AddRateLimiter(options =>
+{
+    //options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpcontext =>
+    //            RateLimitPartition.GetFixedWindowLimiter(
+    //                partitionKey: httpcontext.Connection.RemoteIpAddress?.ToString()!,
+    //                factory: partition => new FixedWindowRateLimiterOptions
+    //                {
+    //                    AutoReplenishment = true,
+    //                    PermitLimit = 3,
+    //                    Window = TimeSpan.FromMinutes(5)
+    //                }
+    //            ));
 
-//options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, IPAddress>(context =>
-//    {
+    //options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, IPAddress>(context =>
+    //    {
 
-//        return RateLimitPartition.GetTokenBucketLimiter
-//        (context.Connection.RemoteIpAddress!, _ =>
-//            new TokenBucketRateLimiterOptions
-//            {
-//                TokenLimit = 5,
-//                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-//                QueueLimit = 2,
-//                ReplenishmentPeriod = TimeSpan.FromSeconds(10),
-//                TokensPerPeriod = 2,
-//                AutoReplenishment = true
-//            });
-//    });
-//});
+    //        return RateLimitPartition.GetTokenBucketLimiter
+    //        (context.Connection.RemoteIpAddress!, _ =>
+    //            new TokenBucketRateLimiterOptions
+    //            {
+    //                TokenLimit = 5,
+    //                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+    //                QueueLimit = 2,
+    //                ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+    //                TokensPerPeriod = 2,
+    //                AutoReplenishment = true
+    //            });
+    //    });
+});
 #endregion
 
 
@@ -214,6 +215,6 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 // this is optional
-app.MapDefaultControllerRoute().RequireRateLimiting("PerIpPolicy");
+app.MapDefaultControllerRoute().RequireRateLimiting("FixedWindowLimiter");
 
 app.Run();
