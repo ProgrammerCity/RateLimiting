@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace RateLimiting.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [EnableRateLimiting("FixedWindowLimiter")]
+    //[EnableRateLimiting("FixedWindowLimiter")]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
@@ -21,9 +20,11 @@ namespace RateLimiting.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
+        //[EnableRateLimiting("tokenLimiter")]
+        //[DisableRateLimiting]
         public async Task<IEnumerable<WeatherForecast>> GetAsync()
         {
-            //await Task.Delay(20000);
+            //await Task.Delay(2000);
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),

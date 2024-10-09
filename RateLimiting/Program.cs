@@ -1,90 +1,164 @@
-﻿using Microsoft.AspNetCore.RateLimiting;
-using System.Net;
-using System.Threading.RateLimiting;
+﻿using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-#region ByPolicy
+#region limitByPolicy
 
-#region NormalLimiter
-#region GetConcurrencyLimiter
-//builder.Services.AddRateLimiter(options =>
-//{
-//    // پالیسی زیر باید در کنترلر اضافه شود Concurency
-//    options.AddConcurrencyLimiter("Concurency", options =>
-//    {
-//        options.PermitLimit = 1;
-//        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-//        options.QueueLimit = 1;
-//    });
-//});
+    #region NormalLimiter
+        
+        #region GetConcurrencyLimiter
+        //builder.Services.AddRateLimiter(options =>
+        //{
+        //    // پالیسی زیر باید در کنترلر اضافه شود Concurency
+        //    options.AddConcurrencyLimiter("Concurency", opt =>
+        //    {
+        //        opt.PermitLimit = 1;
+        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        //        opt.QueueLimit = 1;
+        //    });
+        //});
+        #endregion
+        
+        
+        
+        #region FixedWindowLimiter
+        //builder.Services.AddRateLimiter(options =>
+        //{
+        //    options.AddFixedWindowLimiter("FixedWindowLimiter", opt=>
+        //    {
+        //        opt.AutoReplenishment = true;
+        //        opt.PermitLimit = 3;
+        //        opt.QueueLimit = 2;
+        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        //        opt.Window = TimeSpan.FromSeconds(10);
+        //    });
+        //});
+        #endregion
+        
+        
+        
+        #region SlidingWindowLimiter 
+        //builder.Services.AddRateLimiter(options =>
+        //{
+        //    options.AddSlidingWindowLimiter("SlidingWindow", opt =>
+        //    {
+        //        opt.Window = TimeSpan.FromSeconds(30);
+        //        opt.SegmentsPerWindow = 3;
+        //        opt.PermitLimit = 3;
+        //        opt.QueueLimit = 2;
+        //        opt.AutoReplenishment = true;
+        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        //    });
+        //});
+        #endregion
+        
+        
+        
+        #region TokenBucketLimiter
+        //builder.Services.AddRateLimiter(options =>
+        //{
+        //    options.AddTokenBucketLimiter("PerIpPolicy", opt =>
+        //    {
+        //        opt.TokenLimit = 6; // Maximum number of tokens (i.e., max 10 requests at once)
+        //        opt.TokensPerPeriod = 4; // Number of tokens replenished per period
+        //        opt.ReplenishmentPeriod = TimeSpan.FromSeconds(20); // Replenish tokens every minute
+        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        //        opt.QueueLimit = 2;// Allow 2 requests to queue if tokens are exhausted
+        //    });
+        //});
+        #endregion
+
+    #endregion
+
+    #region LimitByKey(IpAddress)
+    
+        #region FixedWindowLimiter
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddPolicy("FixPerIpPolicy", context =>
+                {
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                          context.Connection.RemoteIpAddress?.ToString(), ip =>
+                          new FixedWindowRateLimiterOptions
+                          {
+                              PermitLimit = 3,
+                              AutoReplenishment = true,
+                              Window = TimeSpan.FromSeconds(10),
+                              QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                              QueueLimit = 2 // Allow 2 requests to queue if tokens are exhausted
+                          });
+                });
+            });
+        #endregion
+    
+    
+        #region SlidingWindowLimiter 
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddPolicy("SlidingPerIpPolicy", context =>
+                {
+                    return RateLimitPartition.GetSlidingWindowLimiter(
+                          context.Connection.RemoteIpAddress?.ToString(), ip =>
+                          new SlidingWindowRateLimiterOptions
+                          {
+                            PermitLimit = 3,
+                            SegmentsPerWindow = 4,
+                            AutoReplenishment =true, 
+                            Window = TimeSpan.FromMinutes(2),
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 2 // Allow 2 requests to queue if tokens are exhausted
+                          });
+                });
+            });
+        #endregion
+    
+    
+        #region GetConcurrencyLimiter
+        builder.Services.AddRateLimiter(options =>
+        {
+            // پالیسی زیر باید در کنترلر اضافه شود PerIpPolicy
+            options.AddPolicy("PerIpPolicy", context =>
+            {
+                return RateLimitPartition.GetTokenBucketLimiter(
+                      context.Connection.RemoteIpAddress?.ToString(), ip =>
+                      new TokenBucketRateLimiterOptions
+                      {
+                          TokenLimit = 6, // Maximum number of tokens (i.e., max 10 requests at once)
+                          TokensPerPeriod = 3, // Number of tokens replenished per period
+                          ReplenishmentPeriod = TimeSpan.FromSeconds(10), // Replenish tokens every minute
+                          QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                          QueueLimit = 2 // Allow 2 requests to queue if tokens are exhausted
+                      });
+            });
+        });
+        #endregion
+    
+    
+        #region TokenBucketLimiter
+        builder.Services.AddRateLimiter(options =>
+        {
+            // پالیسی زیر باید در کنترلر اضافه شود PerIpPolicy
+            options.AddPolicy("PerIpPolicy", context =>
+            {
+                return RateLimitPartition.GetTokenBucketLimiter(
+                      context.Connection.RemoteIpAddress?.ToString(), ip =>
+                      new TokenBucketRateLimiterOptions
+                      {
+                          TokenLimit = 6, // Maximum number of tokens (i.e., max 10 requests at once)
+                          TokensPerPeriod = 3, // Number of tokens replenished per period
+                          ReplenishmentPeriod = TimeSpan.FromSeconds(10), // Replenish tokens every minute
+                          QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                          QueueLimit = 2 // Allow 2 requests to queue if tokens are exhausted
+                      });
+            });
+        });
+        #endregion
+
+    #endregion
+
 #endregion
 
-
-
-#region FixedWindowLimiter
-//builder.Services.AddRateLimiter(options =>
-//{
-//    options.AddFixedWindowLimiter("FixedWindowLimiter", options =>
-//    {
-//        options.AutoReplenishment = true;
-//        options.PermitLimit = 3;
-//        options.QueueLimit = 2;
-//        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-//        options.Window = TimeSpan.FromSeconds(10);
-
-//    });
-//});
-#endregion
-
-
-
-#region SlidingWindowLimiter 
-تا اینجا درست شد
-//builder.Services.AddRateLimiter(options =>
-//{
-//    options.AddPolicy("PerIpPolicy", context =>
-//    {
-//        return RateLimitPartition.GetSlidingWindowLimiter(
-//              context.Connection.RemoteIpAddress?.ToString(), ip =>
-//              new TokenBucketRateLimiterOptions
-//              {
-//                  TokenLimit = 6, // Maximum number of tokens (i.e., max 10 requests at once)
-//                  TokensPerPeriod = 3, // Number of tokens replenished per period
-//                  ReplenishmentPeriod = TimeSpan.FromSeconds(10), // Replenish tokens every minute
-//                  QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-//                  QueueLimit = 2 // Allow 2 requests to queue if tokens are exhausted
-//              });
-//    });
-//});
-#endregion
-
-
-
-#region TokenBucketLimiter
-//builder.Services.AddRateLimiter(options =>
-//{
-//    options.AddPolicy("PerIpPolicy", context =>
-//    {
-//        return RateLimitPartition.GetTokenBucketLimiter(
-//              context.Connection.RemoteIpAddress?.ToString(), ip =>
-//              new TokenBucketRateLimiterOptions
-//              {
-//                  TokenLimit = 6, // Maximum number of tokens (i.e., max 10 requests at once)
-//                  TokensPerPeriod = 3, // Number of tokens replenished per period
-//                  ReplenishmentPeriod = TimeSpan.FromSeconds(10), // Replenish tokens every minute
-//                  QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-//                  QueueLimit = 2 // Allow 2 requests to queue if tokens are exhausted
-//              });
-//    });
-//});
-#endregion
-#endregion
-
-
-
-#endregion
 
 #region GlobalLimiter
 //builder.Services.AddRateLimiter(options =>
@@ -120,15 +194,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 
-// Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -136,9 +207,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// this is Mandatory
 app.UseRateLimiter();
+
 app.UseAuthorization();
 
-app.MapControllers();
+// this is optional
+app.MapDefaultControllerRoute().RequireRateLimiting("PerIpPolicy");
 
 app.Run();
