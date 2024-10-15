@@ -44,8 +44,8 @@ var builder = WebApplication.CreateBuilder(args);
             {
                 options.AddSlidingWindowLimiter("SlidingWindow", opt =>
                 {
-                    opt.Window = TimeSpan.FromSeconds(30);
-                    opt.SegmentsPerWindow = 3;
+                    opt.Window = TimeSpan.FromSeconds(30); // بازه ویندوز
+                    opt.SegmentsPerWindow = 3; // تعداد تکه در هر ویندوز
                     opt.PermitLimit = 100;
                     opt.QueueLimit = 2;
                     opt.AutoReplenishment = true;
@@ -61,11 +61,11 @@ var builder = WebApplication.CreateBuilder(args);
         {
             options.AddTokenBucketLimiter("PerIpPolicy", opt =>
             {
-                opt.TokenLimit = 6; // Maximum number of tokens (i.e., max 10 requests at once)
-                opt.TokensPerPeriod = 4; // Number of tokens replenished per period
-                opt.ReplenishmentPeriod = TimeSpan.FromSeconds(20); // Replenish tokens every minute
+                opt.TokenLimit = 6; // ظرفیت سطل
+                opt.TokensPerPeriod = 4; // میزان توکن اضافه شونده در بازه مشخص شده
+                opt.ReplenishmentPeriod = TimeSpan.FromSeconds(20); // بازه مشخص شده برا اضافه کردن توکن های جدید
                 opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 2;// Allow 2 requests to queue if tokens are exhausted
+                opt.QueueLimit = 2;// محدودیت صف
             });
         });
         #endregion
