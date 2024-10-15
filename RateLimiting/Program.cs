@@ -121,13 +121,11 @@ var builder = WebApplication.CreateBuilder(args);
             // پالیسی زیر باید در کنترلر اضافه شود PerIpPolicy
             options.AddPolicy("PerIpPolicy", context =>
             {
-                return RateLimitPartition.GetTokenBucketLimiter(
+                return RateLimitPartition.GetConcurrencyLimiter(
                       context.Connection.RemoteIpAddress?.ToString(), ip =>
-                      new TokenBucketRateLimiterOptions
+                      new ConcurrencyLimiterOptions
                       {
-                          TokenLimit = 6, // Maximum number of tokens (i.e., max 10 requests at once)
-                          TokensPerPeriod = 3, // Number of tokens replenished per period
-                          ReplenishmentPeriod = TimeSpan.FromSeconds(10), // Replenish tokens every minute
+                          PermitLimit = 3,
                           QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                           QueueLimit = 2 // Allow 2 requests to queue if tokens are exhausted
                       });
@@ -154,9 +152,9 @@ var builder = WebApplication.CreateBuilder(args);
                       });
             });
         });
-#endregion
+        #endregion
 
-#endregion
+    #endregion
 
 #endregion
 
