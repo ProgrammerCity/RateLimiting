@@ -59,7 +59,7 @@ var builder = WebApplication.CreateBuilder(args);
         #region TokenBucketLimiter
         builder.Services.AddRateLimiter(options =>
         {
-            options.AddTokenBucketLimiter("PerIpPolicy", opt =>
+            options.AddTokenBucketLimiter("TokenBucket", opt =>
             {
                 opt.TokenLimit = 6; // ظرفیت سطل
                 opt.TokensPerPeriod = 4; // میزان توکن اضافه شونده در بازه مشخص شده
