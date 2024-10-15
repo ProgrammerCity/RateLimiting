@@ -5,7 +5,7 @@ namespace RateLimiting.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [EnableRateLimiting("Concurency")]
+    //[EnableRateLimiting("Concurency")]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
@@ -21,7 +21,7 @@ namespace RateLimiting.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
-        [EnableRateLimiting("tokenLimiter")]
+        //[EnableRateLimiting("tokenLimiter")]
         //[DisableRateLimiting]
         public async Task<IEnumerable<WeatherForecast>> GetAsync()
         {
