@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 #region limitByPolicy
 
-    #region NormalLimiter
+    #region ---------------------------- ** NormalLimiter ** ---------------------------------------
         
         #region GetConcurrencyLimiter
             builder.Services.AddRateLimiter(options =>
@@ -57,22 +57,22 @@ var builder = WebApplication.CreateBuilder(args);
         
         
         #region TokenBucketLimiter
-        //builder.Services.AddRateLimiter(options =>
-        //{
-        //    options.AddTokenBucketLimiter("PerIpPolicy", opt =>
-        //    {
-        //        opt.TokenLimit = 6; // Maximum number of tokens (i.e., max 10 requests at once)
-        //        opt.TokensPerPeriod = 4; // Number of tokens replenished per period
-        //        opt.ReplenishmentPeriod = TimeSpan.FromSeconds(20); // Replenish tokens every minute
-        //        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        //        opt.QueueLimit = 2;// Allow 2 requests to queue if tokens are exhausted
-        //    });
-        //});
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.AddTokenBucketLimiter("PerIpPolicy", opt =>
+            {
+                opt.TokenLimit = 6; // Maximum number of tokens (i.e., max 10 requests at once)
+                opt.TokensPerPeriod = 4; // Number of tokens replenished per period
+                opt.ReplenishmentPeriod = TimeSpan.FromSeconds(20); // Replenish tokens every minute
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = 2;// Allow 2 requests to queue if tokens are exhausted
+            });
+        });
         #endregion
 
     #endregion
 
-    #region LimitByKey(IpAddress)
+    #region ----------------------------- ** LimitByKey(IpAddress) ** ----------------------------
     
         #region FixedWindowLimiter
             builder.Services.AddRateLimiter(options =>
@@ -162,35 +162,35 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 #region GlobalLimiter
-builder.Services.AddRateLimiter(options =>
-{
-    //options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpcontext =>
-    //            RateLimitPartition.GetFixedWindowLimiter(
-    //                partitionKey: httpcontext.Connection.RemoteIpAddress?.ToString()!,
-    //                factory: partition => new FixedWindowRateLimiterOptions
-    //                {
-    //                    AutoReplenishment = true,
-    //                    PermitLimit = 3,
-    //                    Window = TimeSpan.FromMinutes(5)
-    //                }
-    //            ));
-
-    //options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, IPAddress>(context =>
-    //    {
-
-    //        return RateLimitPartition.GetTokenBucketLimiter
-    //        (context.Connection.RemoteIpAddress!, _ =>
-    //            new TokenBucketRateLimiterOptions
-    //            {
-    //                TokenLimit = 5,
-    //                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-    //                QueueLimit = 2,
-    //                ReplenishmentPeriod = TimeSpan.FromSeconds(10),
-    //                TokensPerPeriod = 2,
-    //                AutoReplenishment = true
-    //            });
-    //    });
-});
+    builder.Services.AddRateLimiter(options =>
+    {
+        //options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpcontext =>
+        //            RateLimitPartition.GetFixedWindowLimiter(
+        //                partitionKey: httpcontext.Connection.RemoteIpAddress?.ToString()!,
+        //                factory: partition => new FixedWindowRateLimiterOptions
+        //                {
+        //                    AutoReplenishment = true,
+        //                    PermitLimit = 3,
+        //                    Window = TimeSpan.FromMinutes(5)
+        //                }
+        //            ));
+    
+        //options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, IPAddress>(context =>
+        //    {
+    
+        //        return RateLimitPartition.GetTokenBucketLimiter
+        //        (context.Connection.RemoteIpAddress!, _ =>
+        //            new TokenBucketRateLimiterOptions
+        //            {
+        //                TokenLimit = 5,
+        //                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+        //                QueueLimit = 2,
+        //                ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+        //                TokensPerPeriod = 2,
+        //                AutoReplenishment = true
+        //            });
+        //    });
+    });
 #endregion
 
 
