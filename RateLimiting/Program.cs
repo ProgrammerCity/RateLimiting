@@ -14,9 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
             {
                 options.AddConcurrencyLimiter("Concurency", opt =>
                 {
-                    opt.PermitLimit = 1;
-                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    opt.QueueLimit = 1;
+                    opt.PermitLimit = 1; // تعداد درخواست 
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst; // ترتیب پردازش صف
+                    opt.QueueLimit = 1; // محدودیت صف
                 });
             });
         #endregion
@@ -28,11 +28,11 @@ var builder = WebApplication.CreateBuilder(args);
             {
                 options.AddFixedWindowLimiter("FixedWindowLimiter", opt=>
                 {
-                    opt.AutoReplenishment = true;
+                    opt.AutoReplenishment = true; // تکمیل خودکار
+                    opt.Window = TimeSpan.FromSeconds(10); // بازه ویندوز برای رفرش کردن ظرفیت درخواستها
                     opt.PermitLimit = 3;
                     opt.QueueLimit = 2;
                     opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    opt.Window = TimeSpan.FromSeconds(10);
                 });
             });
         #endregion
@@ -46,7 +46,7 @@ var builder = WebApplication.CreateBuilder(args);
                 {
                     opt.Window = TimeSpan.FromSeconds(30);
                     opt.SegmentsPerWindow = 3;
-                    opt.PermitLimit = 3;
+                    opt.PermitLimit = 100;
                     opt.QueueLimit = 2;
                     opt.AutoReplenishment = true;
                     opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
